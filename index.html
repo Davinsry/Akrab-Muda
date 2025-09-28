@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mencari Lokasi...</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1 id="status">Meminta izin lokasi Anda...</h1>
+
+    <script>
+        window.onload = function() {
+            // --- GANTI DENGAN URL WEBHOOK ANDA ---
+            const webhookUrl = 'https://n8n-aa64.bgd.my.id/webhook/AkrabMuda';
+            // ------------------------------------
+
+            const statusElement = document.getElementById('status');
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+            } else {
+                statusElement.textContent = "Browser Anda tidak mendukung Geolocation.";
+            }
+
+            function success(position) {
+                statusElement.textContent = "Lokasi ditemukan! Mengirim data...";
+
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                // Menambahkan latitude dan longitude ke parameter URL yang sudah ada
+                urlParams.append('latitude', latitude);
+                urlParams.append('longitude', longitude);
+
+                // Mengirim semua data ke webhook n8n
+                fetch(`${webhookUrl}?${urlParams.toString()}`)
+                    .then(response => {
+                        if (response.ok) {
+                            statusElement.textContent = "Absensi berhasil direkam! Terima kasih.";
+                        } else {
+                            statusElement.textContent = "Gagal mengirim data ke server.";
+                        }
+                    })
+                    .catch(error => {
+                        statusElement.textContent = "Terjadi error saat mengirim data.";
+                        console.error('Error:', error);
+                    });
+            }
+
+            function error() {
+                statusElement.textContent = "Izin lokasi ditolak. Absensi tidak dapat dilanjutkan.";
+            }
+        };
+    </script>
+</body>
+</html>
